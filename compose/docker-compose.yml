@@ -1,0 +1,74 @@
+#version: '3.8'
+services:
+  stub-api:
+    # image: pingapp:1.2.curl
+    image: pingapp:1.3
+
+    env_file: .env
+    ports:
+      - 9876:${SERVER_ADDR}
+#    security_opt:
+#       - seccomp:sec/seccomp_wider.json
+    depends_on:
+      - postgres
+      - redis
+      - rabbit
+#      - minio
+    healthcheck:
+      test: ["CMD", "curl", "-f", "localhost:8093/ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      
+
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  
+  rabbit:
+    image: rabbitmq:latest
+    healthcheck:
+      # test: ["CMD", "curl", "-f", "localhost:5672"]
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    ports:
+      - 5672:5672
+      - 15672:15672
+  
+  # minio:
+  #   image: minio/minio:latest
+  #   ports:
+  #     - 9000:9000
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "localhost:9000/minio/health/live"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+
+  postgres:
+    image: postgres:14
+    ports:
+      - 5432:5432
+    volumes:
+      - data:/home/n3rd/angara/devops_roadmap/PasteSuite/compose/psqlData
+    env_file:
+      - .env
+    # healthcheck:
+    #   test: ["CMD", ""]
+    #   interval: 5s
+    #   timeout: 5s
+    #   retries: 5
+
+volumes:
+  data:
